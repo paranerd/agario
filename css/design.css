@@ -1,0 +1,7 @@
+#canvas {
+  position: absolute;
+  width: 960px;
+  height: 480px;
+  border-radius: 2px;
+  box-shadow: 0 0 15px 5px #BBB;
+}
