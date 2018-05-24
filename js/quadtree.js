@@ -7,10 +7,12 @@ var allObjects = [],
 	last = Date.now(),
 	lastUpdate = Date.now(),
 	lastSpawn = 0,
-	requestId;
+	requestId,
+	useQuadtree = true,
+	debug = false;
 
 window.onload = function() {
-	init(20);
+	init(100);
 	animate();
 }
 
@@ -78,7 +80,13 @@ function collide(entity1, entity2) {
 // GAME LOOP
 function animate() {
 	var delta = (Date.now() - lastRender) / 1000;
-	update(delta);
+	if (useQuadtree) {
+		updateQuad(delta);
+	}
+	else {
+		update(delta);
+	}
+
 	lastRender = Date.now();
 	draw();
 
@@ -86,7 +94,7 @@ function animate() {
 };
 
 // UPDATE
-function update(dt) {
+function updateQuad(dt) {
 	var start = Date.now();
 	quad.clear();
 	for (var i = allObjects.length - 1; i >= 0; i--) {
@@ -127,11 +135,58 @@ function update(dt) {
 	if (Date.now() - lastSpawn > 2000 && allObjects.length < 10) {
 		spawn(false);
 	}
-};
+}
+
+function update(dt) {
+	var start = Date.now();
+
+	for (var i = 0; i < allObjects.length; i++) {
+		if (allObjects[i].size <= 0) {
+			allObjects.splice(i, 1);
+			continue;
+		}
+
+		allObjects[i].update();
+		for (var j = 0; j < allObjects.length; j++) {
+			if (i != j && collide(allObjects[i], allObjects[j])) {
+				allObjects[i].collision = true;
+				allObjects[j].collision = true;
+
+				// When growing, take 1px from the victim and add a relative amount of pixels to the attacker
+				// So when a 20px attacks a 10px, it gets 0.5px
+				if (allObjects[i].size > allObjects[j].size && allObjects[j].size > 0) {
+					allObjects[i].grow(allObjects[j].size / allObjects[i].size);
+					allObjects[j].shrink();
+				}
+				else if (allObjects[i].size < allObjects[j].size && allObjects[i].size > 0) {
+					allObjects[j].grow(allObjects[i].size / allObjects[j].size);
+					allObjects[i].shrink();
+				}
+			}
+		}
+	}
+
+	kontrolle.innerHTML = "Score: " + Math.floor(allObjects[0].size);
+
+	if (Date.now() - lastSpawn > 2000 && allObjects.length < 10) {
+		spawn(false);
+	}
+}
 
 // DRAW
 function draw() {
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+	if (useQuadtree && debug) {
+		var nodes = [];
+		nodes = quad.getAllNodes(nodes);
+		for(var i = 0; i < nodes.length; i++) {
+			ctx.strokeStyle = "grey";
+			ctx.lineWidth = "0.5";
+			ctx.rect(nodes[i].bounds.x, nodes[i].bounds.y, nodes[i].bounds.width, nodes[i].bounds.height);
+			ctx.stroke();
+		}
+	}
 
 	for (var o of allObjects) {
 		if (o.collision) {
@@ -149,4 +204,4 @@ function draw() {
 		}
 		o.collision = false;
 	}
-};
+}

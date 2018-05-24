@@ -15,16 +15,16 @@ function Circle (x, y, size, vel, color, player) {
 		this.x += this.velocity.x * this.speed;
 		this.y += this.velocity.y * this.speed;
 
-		if (this.x + this.size / 2 >= 960) {
-			this.x = 960 - this.size / 2;
+		if (this.x + this.size / 2 >= canvas.width) {
+			this.x = canvas.width - this.size / 2;
 			this.velocity.x *= -1;
 		}
 		else if (this.x <= this.size / 2) {
 			this.x = this.size / 2;
 			this.velocity.x *= -1;
 		}
-		if (this.y + this.size / 2 >= 480) {
-			this.y = 480 - this.size / 2;
+		if (this.y + this.size / 2 >= canvas.height) {
+			this.y = canvas.height - this.size / 2;
 			this.velocity.y *= -1;
 		}
 		else if (this.y <= this.size / 2) {
